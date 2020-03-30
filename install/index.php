@@ -54,6 +54,8 @@ Class opensource_order extends CModule
     {
         DeleteDirFilesEx(BX_ROOT . '/components/opensource/order');
         DeleteDirFilesEx('/local/components/opensource/order');
+        DeleteDirFilesEx(BX_ROOT . '/components/opensource/order.oneclick');
+        DeleteDirFilesEx('/local/components/opensource/order.oneclick');
     }
 
     function DoInstall()
