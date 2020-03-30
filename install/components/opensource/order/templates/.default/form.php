@@ -19,7 +19,7 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
 /** @var OpenSourceOrderComponent $component */
 
 ?>
-<form action="" method="post" name="os-order-form" id="os-order-form">
+<form action="" method="post" name="os-order-form" id="os-order-form" enctype="multipart/form-data">
 
     <input type="hidden" name="person_type_id" value="<?=$arParams['PERSON_TYPE_ID']?>">
     <input type="hidden" name="delivery_id" value="<?= $arParams['DEFAULT_DELIVERY_ID'] ?>">
@@ -89,6 +89,14 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
                             <input id="<?= $arProp['FORM_LABEL'] ?>" type="checkbox"
                                    name="<?= $arProp['FORM_NAME'] ?>"
                                    value="Y">
+                            <?
+                            break;
+
+                        case 'FILE':
+                            ?>
+                            <input id="<?= $arProp['FORM_LABEL'] ?>" type="file"
+                                   name="<?= $arProp['FORM_NAME'] ?>"
+                                   value="<?= $arProp['VALUE'] ?>">
                             <?
                             break;
 
