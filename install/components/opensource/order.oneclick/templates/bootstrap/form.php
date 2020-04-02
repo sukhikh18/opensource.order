@@ -93,12 +93,38 @@ if( ! function_exists('getInputAttributes')) {
                 break;
 
             case 'ENUM':
-                foreach ($arProp['OPTIONS'] as $code => $name):?>
+                if("Y" === $arProp['MULTIELEMENT']) {
+                    array_walk($arProp['OPTIONS'], function(&$v, $k){
+                        $v = '<option value="'.$k.'">'.$v.'</option>';
+                    });
+
+                    printf('
+                        <div class="order-form__group form-group form-group--%1$s enum">
+                            <label for="order-%1$s">%2$s%3$s</label>
+                            <select class="form-control" name="%4$s" id="%1$s">
+                                %5$s
+                            </select>
+                            %6$s
+                            %7$s
+                        </div>
+                        ',
+                        strtolower($arProp['FORM_LABEL']),
+                        $arProp['NAME'],
+                        $arProp['IS_REQUIRED'] ? REQUIRED_SIGN : '',
+                        $arProp['FORM_NAME'],
+                        implode("\n", $arProp['OPTIONS']),
+                        $arProp['FORM_DESC'] ? '<small class="form-text text-muted">' . $arProp['DESC'] . '</small>' : '',
+                        implode('<br>', $arProp['ERRORS'])
+                    );
+                }
+                else {
+                    foreach ($arProp['OPTIONS'] as $code => $name):?>
                     <label class="enum-option">
                         <input type="radio" name="<?= $arProp['FORM_NAME'] ?>" value="<?= $code ?>">
                         <?= $name ?>
                     </label>
-                <?endforeach;
+                    <?endforeach;
+                }
                 break;
 
             case 'DATE':
