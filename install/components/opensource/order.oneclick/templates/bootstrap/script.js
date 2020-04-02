@@ -45,8 +45,36 @@ jQuery(document).ready(function($) {
             processData: false,
             data: serializeForm($orderForm),
             success: function (res) {
-                console.log(res)
-                alert('Check request results in console!');
+                $.ajax({
+                    url: '/user/order/payment/',
+                    type: 'GET',
+                    dataType: 'HTML',
+                    data: {
+                        'ORDER_ID': res.data.order_id,
+                    },
+                }).done(function (payForm) {
+
+                    var $payment = $('<div id="payment-content">').append(payForm);
+                    if(typeof($.fancybox)) {
+                        $.fancybox.open($payment);
+                    } else {
+                        // Force payment crunch example
+                        $payment.find('form').removeAttr('target').submit();
+                        var href = $payment.find('a').attr('href');
+                        if (href) window.location.href = href;
+
+                        // When some go wrong...
+                        setTimeout(function () {
+                            // Its no bug, its future.
+                            if(typeof($.fancybox)) {
+                                $.fancybox.open($payment);
+                            }
+                            else {
+                                $orderForm.prepend($payment);
+                            }
+                        }, 5000);
+                    }
+                });
             }
         });
     });
