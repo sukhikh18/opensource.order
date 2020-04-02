@@ -169,6 +169,7 @@ class OpenSourceOrderOneClickComponent extends OpenSourceOrderComponent
                     $this->createOrderPayment($paySystemId);
                 }
 
+                $this->order->doFinalAction(true);
                 $this->saveOrder($this);
             }
         } catch (Exception $exception) {
