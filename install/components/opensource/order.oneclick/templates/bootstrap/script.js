@@ -45,36 +45,41 @@ jQuery(document).ready(function($) {
             processData: false,
             data: serializeForm($orderForm),
             success: function (res) {
-                $.ajax({
-                    url: '/user/order/payment/',
-                    type: 'GET',
-                    dataType: 'HTML',
-                    data: {
-                        'ORDER_ID': res.data.order_id,
-                    },
-                }).done(function (payForm) {
+                if(!typeof(res.status)) return;
 
-                    var $payment = $('<div id="payment-content">').append(payForm);
-                    if(typeof($.fancybox)) {
-                        $.fancybox.open($payment);
-                    } else {
-                        // Force payment crunch example
-                        $payment.find('form').removeAttr('target').submit();
-                        var href = $payment.find('a').attr('href');
-                        if (href) window.location.href = href;
+                if('success' != res.status) {
+                } else {
+                    $.ajax({
+                        url: '/user/order/payment/',
+                        type: 'GET',
+                        dataType: 'HTML',
+                        data: {
+                            'ORDER_ID': res.data.order_id,
+                        },
+                    }).done(function (payForm) {
 
-                        // When some go wrong...
-                        setTimeout(function () {
-                            // Its no bug, its future.
-                            if(typeof($.fancybox)) {
-                                $.fancybox.open($payment);
-                            }
-                            else {
-                                $orderForm.prepend($payment);
-                            }
-                        }, 5000);
-                    }
-                });
+                        var $payment = $('<div id="payment-content">').append(payForm);
+                        if(typeof($.fancybox)) {
+                            $.fancybox.open($payment);
+                        } else {
+                            // Force payment crunch example
+                            $payment.find('form').removeAttr('target').submit();
+                            var href = $payment.find('a').attr('href');
+                            if (href) window.location.href = href;
+
+                            // When some go wrong...
+                            setTimeout(function () {
+                                // Its no bug, its future.
+                                if(typeof($.fancybox)) {
+                                    $.fancybox.open($payment);
+                                }
+                                else {
+                                    $orderForm.prepend($payment);
+                                }
+                            }, 5000);
+                        }
+                    });
+                }
             }
         });
     });
