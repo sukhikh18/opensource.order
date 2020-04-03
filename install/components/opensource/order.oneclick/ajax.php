@@ -34,7 +34,6 @@ class OpenSourceOrderOneClickAjaxController extends Controller
     public function saveOrderOneClickAction(
         int $person_type_id,
         int $productId,
-        array $properties,
         int $delivery_id,
         int $pay_system_id
     ): array {
@@ -47,6 +46,8 @@ class OpenSourceOrderOneClickAjaxController extends Controller
         if(!$addResult->isSuccess()) {
             $this->errorCollection->add($addResult->getErrors());
         }
+
+        $properties = $componentClass->getPropertiesFromRequest() ?: $this->arParams['DEFAULT_PROPERTIES'];
 
         $componentClass->createVirtualEasyOrder($person_type_id, $basket);
         $componentClass->setOrderProperties($properties);

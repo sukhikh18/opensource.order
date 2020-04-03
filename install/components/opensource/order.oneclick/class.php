@@ -17,7 +17,7 @@ class OpenSourceOrderOneClickComponent extends OpenSourceOrderComponent
      */
     public function getPropertiesFromRequest(): array
     {
-        $properties = $this->request['properties'] ?? $this->arParams['DEFAULT_PROPERTIES'] ?? [];
+        $properties = $this->request['properties'] ?? [];
         $arFileProperties = $this->request->getFileList()->get('properties');
 
         if (is_array($arFileProperties)) {
@@ -156,7 +156,7 @@ class OpenSourceOrderOneClickComponent extends OpenSourceOrderComponent
 
                 $this->createVirtualEasyOrder($this->arParams['PERSON_TYPE_ID'], $basket);
 
-                $propertiesList = $this->getPropertiesFromRequest();
+                $propertiesList = $this->getPropertiesFromRequest() ?: $this->arParams['DEFAULT_PROPERTIES'];
                 if (!empty($propertiesList)) {
                     $this->setOrderProperties($propertiesList);
                 }
