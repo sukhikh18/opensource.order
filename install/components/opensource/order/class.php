@@ -5,6 +5,7 @@ use Bitrix\Main\Error;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Result;
+use Bitrix\Main\Request;
 use Bitrix\Sale\Basket;
 use Bitrix\Sale\BasketItem;
 use Bitrix\Sale\Fuser;
@@ -18,6 +19,7 @@ use Bitrix\Sale\ShipmentItemCollection;
 use Bitrix\Sale\Delivery;
 use OpenSource\Order\ErrorCollection;
 use OpenSource\Order\OrderHelper;
+use OpenSource\Order\UserHelper;
 use Bitrix\Sale\PaySystem;
 
 class OpenSourceOrderComponent extends CBitrixComponent
@@ -31,8 +33,6 @@ class OpenSourceOrderComponent extends CBitrixComponent
      * @var ErrorCollection
      */
     public $errorCollection;
-
-    protected $personTypes = [];
 
     /**
      * CustomOrder constructor.
@@ -60,7 +60,7 @@ class OpenSourceOrderComponent extends CBitrixComponent
         if (isset($arParams['DEFAULT_PERSON_TYPE_ID']) && (int)$arParams['DEFAULT_PERSON_TYPE_ID'] > 0) {
             $arParams['DEFAULT_PERSON_TYPE_ID'] = (int)$arParams['DEFAULT_PERSON_TYPE_ID'];
         } else {
-            $arPersonTypes = $this->getPersonTypes();
+            $arPersonTypes = UserHelper::getInstance()->getPersonTypes();
             $arPersonType = reset($arPersonTypes);
             if (is_array($arPersonType)) {
                 $arParams['DEFAULT_PERSON_TYPE_ID'] = (int)reset($arPersonTypes)['ID'];
@@ -87,23 +87,6 @@ class OpenSourceOrderComponent extends CBitrixComponent
     }
 
     /**
-     * @return array
-     */
-    public function getPersonTypes(): array
-    {
-        if (empty($this->personTypes)) {
-            $personType = new CSalePersonType();
-            $rsPersonTypes = $personType->GetList(['SORT' => 'ASC']);
-            while ($arPersonType = $rsPersonTypes->Fetch()) {
-                $arPersonType['ID'] = (int)$arPersonType['ID'];
-                $this->personTypes[$arPersonType['ID']] = $arPersonType;
-            }
-        }
-
-        return $this->personTypes;
-    }
-
-    /**
      * @param int $personTypeId
      * @return Order
      * @throws Exception
@@ -112,7 +95,7 @@ class OpenSourceOrderComponent extends CBitrixComponent
     {
         global $USER;
 
-        if (!isset($this->getPersonTypes()[$personTypeId])) {
+        if (!isset(UserHelper::getInstance()->getPersonTypes()[$personTypeId])) {
             throw new RuntimeException(Loc::getMessage('OPEN_SOURCE_ORDER_UNKNOWN_PERSON_TYPE'));
         }
 
@@ -131,26 +114,6 @@ class OpenSourceOrderComponent extends CBitrixComponent
         $this->order->setBasket($basketItems);
 
         return $this->order;
-    }
-
-    public function getPropertiesFromRequest()
-    {
-        $properties = $this->request['properties'] ?? [];
-        $arFileProperties = $this->request->getFileList()->get('properties');
-
-        if (is_array($arFileProperties)) {
-            foreach ($arFileProperties  as $fileKey => $arFileField) {
-                foreach ($arFileField as $fieldCode => $arFileFieldValue) {
-                    if( ! isset($properties[$fieldCode])) {
-                        $properties[$fieldCode] = array("ID" => '');
-                    }
-                    // @todo Multiple property
-                    $properties[$fieldCode][$fileKey] = current($arFileFieldValue);
-                }
-            }
-        }
-
-        return $properties;
     }
 
     /**
@@ -391,10 +354,12 @@ class OpenSourceOrderComponent extends CBitrixComponent
 
     public function executeComponent()
     {
+        global $USER;
+
         try {
             $this->createVirtualOrder($this->arParams['PERSON_TYPE_ID']);
 
-            $propertiesList = $this->getPropertiesFromRequest() ?: $this->arParams['DEFAULT_PROPERTIES'] ?? [];
+            $propertiesList = OrderHelper::getProperties($this->request) ?: $this->arParams['DEFAULT_PROPERTIES'] ?? [];
             if (!empty($propertiesList)) {
                 $this->setOrderProperties($propertiesList);
             }
@@ -411,6 +376,22 @@ class OpenSourceOrderComponent extends CBitrixComponent
                 $validationResult = $this->validateOrder();
 
                 if ($validationResult->isSuccess()) {
+                    $userID = intval($USER->GetID());
+
+                    if(
+                        ( ! $userID && 'Y' === $this->arParams['REGISTER_NEW_USER']) ||
+                        ($userID && 'Y' === $this->arParams['UPDATE_USER_PROPERTIES'])
+                    ) {
+                        $userProperties = array_merge(UserHelper::getUserProperties($this->order->getPropertyCollection()), [
+                            "ACTIVE" => 'Y' === $this->arParams['NEW_USER_ACTIVATE'] ? 'Y' : 'N',
+                            "GROUP_ID" => array_map('intval', $this->arParams['GROUP_ID']) ?? [5],
+                            "ADMIN_NOTES" => "User created by opensource.order component.",
+                        ]);
+
+                        UserHelper::updateUserAccount($userID, $userProperties);
+                        $this->order->setFieldNoDemand('USER_ID', $userID);
+                    }
+
                     $saveResult = $this->order->save();
                     if (!$saveResult->isSuccess()) {
                         $this->errorCollection->add($saveResult->getErrors());

@@ -2,6 +2,7 @@
 
 namespace OpenSource\Order;
 
+use Bitrix\Main\Request;
 use Bitrix\Sale\Delivery;
 use Bitrix\Sale\Delivery\CalculationResult;
 use Bitrix\Sale\Order;
@@ -87,6 +88,30 @@ class OrderHelper
         $shipment->setBasePriceDelivery($deliveryPrice);
 
         return $calculatedDeliveries;
+    }
+
+    /**
+     * @param  Request $request
+     * @return null[]|array(property)[]
+     */
+    public static function getProperties(Request $request): array
+    {
+        $properties = $request['properties'] ?? [];
+        $arFileProperties = $request->getFileList()->get('properties');
+
+        if (is_array($arFileProperties)) {
+            foreach ($arFileProperties  as $fileKey => $arFileField) {
+                foreach ($arFileField as $fieldCode => $arFileFieldValue) {
+                    if( ! isset($properties[$fieldCode])) {
+                        $properties[$fieldCode] = array("ID" => '');
+                    }
+                    // @todo Multiple property
+                    $properties[$fieldCode][$fileKey] = current($arFileFieldValue);
+                }
+            }
+        }
+
+        return $properties;
     }
 
 }
