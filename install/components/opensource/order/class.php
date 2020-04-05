@@ -114,7 +114,7 @@ class OpenSourceOrderComponent extends CBitrixComponent
             throw new LengthException(Loc::getMessage('OPEN_SOURCE_ORDER_EMPTY_BASKET'));
         }
 
-        $this->order = Order::create($siteId, $userID ?: CSaleUser::GetAnonymousUserID());
+        $this->order = Order::create($siteId, $userID);
         $this->order->setPersonTypeId($personTypeId);
         $this->order->setBasket($basketItems);
 
@@ -395,6 +395,9 @@ class OpenSourceOrderComponent extends CBitrixComponent
 
                         UserHelper::updateUserAccount($userID, $userProperties);
                         $this->order->setFieldNoDemand('USER_ID', $userID);
+                    }
+                    elseif( ! $userID) {
+                        $this->order->setFieldNoDemand('USER_ID', CSaleUser::GetAnonymousUserID());
                     }
 
                     $saveResult = $this->order->save();
