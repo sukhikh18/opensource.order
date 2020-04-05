@@ -74,6 +74,12 @@ $arComponentParameters = [
             'DEFAULT' => '/personal/cart/',
             'PARENT' => 'ADDITIONAL_SETTINGS',
         ],
+        'ALLOW_UNAUTH_ORDER' => [
+            'NAME' => Loc::getMessage('OPEN_SOURCE_ORDER_ALLOW_UNAUTH_ORDER'),
+            'TYPE' => 'CHECKBOX',
+            'DEFAULT' => 'N',
+            'PARENT' => 'ADDITIONAL_SETTINGS',
+        ],
         'REGISTER_NEW_USER' => [
             'NAME' => 'Регистрировать нового пользователя',
             'TYPE' => 'CHECKBOX',
