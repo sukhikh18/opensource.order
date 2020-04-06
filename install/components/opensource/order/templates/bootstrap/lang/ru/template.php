@@ -1,0 +1,5 @@
+<?php
+$MESS['OPEN_SOURCE_ORDER_TEMPLATE_FIELD_REQUIRED'] = 'Поле обязательно к заполнению';
+$MESS['OPEN_SOURCE_ORDER_TEMPLATE_PROPERTIES_TITLE'] = 'Свойства заказа';
+$MESS['OPEN_SOURCE_ORDER_TEMPLATE_MAKE_ORDER_BUTTON'] = 'Оформить заказ';
+$MESS['OPEN_SOURCE_ORDER_TEMPLATE_ORDER_CREATED'] = 'Заказ №#ORDER_ID# успешно создан';
