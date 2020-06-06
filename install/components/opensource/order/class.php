@@ -116,6 +116,26 @@ class OpenSourceOrderComponent extends CBitrixComponent
         return $this->order;
     }
 
+    public function getPropertiesFromRequest()
+    {
+        $properties = $this->request['properties'] ?? [];
+        $arFileProperties = $this->request->getFileList()->get('properties');
+
+        if (is_array($arFileProperties)) {
+            foreach ($arFileProperties  as $fileKey => $arFileField) {
+                foreach ($arFileField as $fieldCode => $arFileFieldValue) {
+                    if( ! isset($properties[$fieldCode])) {
+                        $properties[$fieldCode] = array("ID" => '');
+                    }
+                    // @todo Multiple property
+                    $properties[$fieldCode][$fileKey] = current($arFileFieldValue);
+                }
+            }
+        }
+
+        return $properties;
+    }
+
     /**
      * @param array $propertyValues
      * @throws Exception
@@ -360,6 +380,7 @@ class OpenSourceOrderComponent extends CBitrixComponent
             $this->createVirtualOrder($this->arParams['PERSON_TYPE_ID']);
 
             $propertiesList = OrderHelper::getProperties($this->request) ?: $this->arParams['DEFAULT_PROPERTIES'] ?? [];
+
             if (!empty($propertiesList)) {
                 $this->setOrderProperties($propertiesList);
             }
