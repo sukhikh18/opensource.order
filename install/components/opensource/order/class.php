@@ -16,9 +16,10 @@ use Bitrix\Sale\ShipmentCollection;
 use Bitrix\Sale\ShipmentItem;
 use Bitrix\Sale\ShipmentItemCollection;
 use Bitrix\Sale\Delivery;
+use Bitrix\Sale\PaySystem;
 use OpenSource\Order\ErrorCollection;
 use OpenSource\Order\OrderHelper;
-use Bitrix\Sale\PaySystem;
+use OpenSource\Order\User;
 
 class OpenSourceOrderComponent extends CBitrixComponent
 {
@@ -28,11 +29,14 @@ class OpenSourceOrderComponent extends CBitrixComponent
     public $order;
 
     /**
+     * @var User;
+     */
+    public $user;
+
+    /**
      * @var ErrorCollection
      */
     public $errorCollection;
-
-    protected $personTypes = [];
 
     /**
      * CustomOrder constructor.
@@ -57,22 +61,12 @@ class OpenSourceOrderComponent extends CBitrixComponent
 
     public function onPrepareComponentParams($arParams = []): array
     {
-        if (isset($arParams['DEFAULT_PERSON_TYPE_ID']) && (int)$arParams['DEFAULT_PERSON_TYPE_ID'] > 0) {
-            $arParams['DEFAULT_PERSON_TYPE_ID'] = (int)$arParams['DEFAULT_PERSON_TYPE_ID'];
-        } else {
-            $arPersonTypes = $this->getPersonTypes();
-            $arPersonType = reset($arPersonTypes);
-            if (is_array($arPersonType)) {
-                $arParams['DEFAULT_PERSON_TYPE_ID'] = (int)reset($arPersonTypes)['ID'];
-            } else {
-                $arParams['DEFAULT_PERSON_TYPE_ID'] = 1;
-            }
-        }
-
-        if (isset($this->request['person_type_id']) && (int)$this->request['person_type_id'] > 0) {
-            $arParams['PERSON_TYPE_ID'] = (int)$this->request['person_type_id'];
-        } else {
-            $arParams['PERSON_TYPE_ID'] = $arParams['DEFAULT_PERSON_TYPE_ID'];
+        if($personType = $this->request->get('person_type_id')) {
+            $arParams['PERSON_TYPE_ID'] = (int)$personType;
+        } elseif (isset($arParams['PERSON_TYPE_ID']) && (int)$arParams['PERSON_TYPE_ID'] > 0) {
+            $arParams['PERSON_TYPE_ID'] = (int)$arParams['PERSON_TYPE_ID'];
+        } elseif ($arPersonType = User::getFirstPersonType()) {
+            $arParams['PERSON_TYPE_ID'] = (int)$arPersonType['ID'];
         }
 
         if (isset($arParams['SAVE'])) {
@@ -87,21 +81,6 @@ class OpenSourceOrderComponent extends CBitrixComponent
     }
 
     /**
-     * @return array
-     */
-    public function getPersonTypes(): array
-    {
-        if (empty($this->personTypes)) {
-            $personType = new CSalePersonType();
-            $rsPersonTypes = $personType->GetList(['SORT' => 'ASC']);
-            while ($arPersonType = $rsPersonTypes->Fetch()) {
-                $arPersonType['ID'] = (int)$arPersonType['ID'];
-                $this->personTypes[$arPersonType['ID']] = $arPersonType;
-            }
-        }
-
-        return $this->personTypes;
-    }
 
     /**
      * @param int $personTypeId
@@ -112,12 +91,11 @@ class OpenSourceOrderComponent extends CBitrixComponent
     {
         global $USER;
 
-        if (!isset($this->getPersonTypes()[$personTypeId])) {
+        if (!isset(User::getPersonTypes()[$personTypeId])) {
             throw new RuntimeException(Loc::getMessage('OPEN_SOURCE_ORDER_UNKNOWN_PERSON_TYPE'));
         }
 
-        $userID = intval($USER->GetID());
-        if( ! $userID && 'Y' !== $this->arParams['ALLOW_UNAUTH_ORDER'] ) {
+        if(!$USER->IsAuthorized() && 'Y' !== $this->arParams['ALLOW_UNAUTH_ORDER']) {
             throw new RuntimeException(Loc::getMessage('OPEN_SOURCE_ORDER_USER_NOT_AUTH'));
         }
 
@@ -416,9 +394,17 @@ class OpenSourceOrderComponent extends CBitrixComponent
                 $validationResult = $this->validateOrder();
 
                 if ($validationResult->isSuccess()) {
-                    $saveResult = $this->order->save();
-                    if (!$saveResult->isSuccess()) {
-                        $this->errorCollection->add($saveResult->getErrors());
+                    $this->user = new User($this->arParams);
+                    $this->user->setByPropertyCollection($this->order->getPropertyCollection());
+                    $userSaveResult = $this->user->save();
+                    if ($userSaveResult->isSuccess()) {
+                        $this->order->setFieldNoDemand('USER_ID', $this->user->getId());
+                        $saveResult = $this->order->save();
+                        if (!$saveResult->isSuccess()) {
+                            $this->errorCollection->add($saveResult->getErrors());
+                        }
+                    } else {
+                        $this->errorCollection->add($userSaveResult->getErrors());
                     }
                 } else {
                     $this->errorCollection->add($validationResult->getErrors());

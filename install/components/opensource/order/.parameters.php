@@ -1,5 +1,6 @@
 <?php
 
+use Bitrix\Main\GroupTable;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Localization\Loc;
 
@@ -42,6 +43,11 @@ while ($arPaySystem = $rsPaySystems->fetch()) {
     $arPaySystemsList[$arPaySystem['ID']] = '[' . $arPaySystem['ID'] . '] ' . $arPaySystem['NAME'];
 }
 
+$arGroups = [];
+array_walk(GroupTable::getList(['select' => ['ID', 'NAME']])->fetchAll(), function($item, $i) use (&$arGroups) {
+    $arGroups[$item['ID']] = $item['NAME'];
+});
+
 $arComponentParameters = [
     'GROUPS' => [
     ],
@@ -79,6 +85,32 @@ $arComponentParameters = [
         ],
         'ALLOW_UNAUTH_ORDER' => [
             'NAME' => Loc::getMessage('OPEN_SOURCE_ORDER_ALLOW_UNAUTH_ORDER'),
+            'TYPE' => 'CHECKBOX',
+            'DEFAULT' => 'N',
+            'PARENT' => 'ADDITIONAL_SETTINGS',
+        ],
+        'REGISTER_NEW_USER' => [
+            'NAME' => Loc::getMessage('OPEN_SOURCE_ORDER_REGISTER_NEW_USER'),
+            'TYPE' => 'CHECKBOX',
+            'DEFAULT' => 'N',
+            'PARENT' => 'ADDITIONAL_SETTINGS',
+        ],
+        'NEW_USER_ACTIVATE' => [
+            'NAME' => Loc::getMessage('OPEN_SOURCE_ORDER_NEW_USER_ACTIVATE'),
+            'TYPE' => 'CHECKBOX',
+            'DEFAULT' => 'N',
+            'PARENT' => 'ADDITIONAL_SETTINGS',
+        ],
+        'REGISTER_GROUP_ID' => [
+            'NAME' => Loc::getMessage('OPEN_SOURCE_ORDER_REGISTER_GROUP_ID'),
+            'TYPE' => 'LIST',
+            'MULTIPLE' => 'Y',
+            'DEFAULT' => '5',
+            'PARENT' => 'ADDITIONAL_SETTINGS',
+            'VALUES' => $arGroups
+        ],
+        'UPDATE_USER_PROPERTIES' => [
+            'NAME' => Loc::getMessage('OPEN_SOURCE_ORDER_UPDATE_USER_PROPERTIES'),
             'TYPE' => 'CHECKBOX',
             'DEFAULT' => 'N',
             'PARENT' => 'ADDITIONAL_SETTINGS',
