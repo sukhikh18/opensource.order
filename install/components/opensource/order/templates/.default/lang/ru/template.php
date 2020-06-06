@@ -24,3 +24,4 @@ $MESS['OPEN_SOURCE_ORDER_TEMPLATE_TOTAL_DISCOUNT'] = 'Общая скидка';
 $MESS['OPEN_SOURCE_ORDER_TEMPLATE_TOTAL_PRICE'] = 'К оплате';
 $MESS['OPEN_SOURCE_ORDER_TEMPLATE_MAKE_ORDER_BUTTON'] = 'Оформить заказ';
 $MESS['OPEN_SOURCE_ORDER_TEMPLATE_ORDER_CREATED'] = 'Заказ №#ORDER_ID# успешно создан';
+$MESS['OPEN_SOURCE_ORDER_NEED_AUTH'] = 'Для продолжения необходимо авторизироваться';
