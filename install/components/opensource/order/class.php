@@ -17,10 +17,10 @@ use Bitrix\Sale\ShipmentCollection;
 use Bitrix\Sale\ShipmentItem;
 use Bitrix\Sale\ShipmentItemCollection;
 use Bitrix\Sale\Delivery;
+use Bitrix\Sale\PaySystem;
 use OpenSource\Order\ErrorCollection;
 use OpenSource\Order\OrderHelper;
-use OpenSource\Order\UserHelper;
-use Bitrix\Sale\PaySystem;
+use OpenSource\Order\User;
 
 class OpenSourceOrderComponent extends CBitrixComponent
 {
@@ -28,6 +28,11 @@ class OpenSourceOrderComponent extends CBitrixComponent
      * @var Order
      */
     public $order;
+
+    /**
+     * @var User;
+     */
+    public $user;
 
     /**
      * @var ErrorCollection
@@ -57,22 +62,12 @@ class OpenSourceOrderComponent extends CBitrixComponent
 
     public function onPrepareComponentParams($arParams = []): array
     {
-        if (isset($arParams['DEFAULT_PERSON_TYPE_ID']) && (int)$arParams['DEFAULT_PERSON_TYPE_ID'] > 0) {
-            $arParams['DEFAULT_PERSON_TYPE_ID'] = (int)$arParams['DEFAULT_PERSON_TYPE_ID'];
-        } else {
-            $arPersonTypes = UserHelper::getInstance()->getPersonTypes();
-            $arPersonType = reset($arPersonTypes);
-            if (is_array($arPersonType)) {
-                $arParams['DEFAULT_PERSON_TYPE_ID'] = (int)reset($arPersonTypes)['ID'];
-            } else {
-                $arParams['DEFAULT_PERSON_TYPE_ID'] = 1;
-            }
-        }
-
-        if (isset($this->request['person_type_id']) && (int)$this->request['person_type_id'] > 0) {
-            $arParams['PERSON_TYPE_ID'] = (int)$this->request['person_type_id'];
-        } else {
-            $arParams['PERSON_TYPE_ID'] = $arParams['DEFAULT_PERSON_TYPE_ID'];
+        if ($personType = $this->request->get('person_type_id')) {
+            $arParams['PERSON_TYPE_ID'] = (int)$personType;
+        } elseif (isset($arParams['PERSON_TYPE_ID']) && (int)$arParams['PERSON_TYPE_ID'] > 0) {
+            $arParams['PERSON_TYPE_ID'] = (int)$arParams['PERSON_TYPE_ID'];
+        } elseif ($arPersonType = User::getFirstPersonType()) {
+            $arParams['PERSON_TYPE_ID'] = (int)$arPersonType['ID'];
         }
 
         if (isset($arParams['SAVE'])) {
@@ -100,7 +95,7 @@ class OpenSourceOrderComponent extends CBitrixComponent
         }
 
         $userID = intval($USER->GetID());
-        if( ! $userID && 'Y' !== $this->arParams['ALLOW_UNAUTH_ORDER'] ) {
+        if (!$userID && 'Y' !== $this->arParams['ALLOW_UNAUTH_ORDER'] ) {
             throw new RuntimeException(Loc::getMessage('OPEN_SOURCE_ORDER_USER_NOT_AUTH'));
         }
 
@@ -381,25 +376,11 @@ class OpenSourceOrderComponent extends CBitrixComponent
                 $validationResult = $this->validateOrder();
 
                 if ($validationResult->isSuccess()) {
-                    $userID = intval($USER->GetID());
+                    $this->user = new User($this->arParams);
+                    $this->user->setByPropertyCollection($this->order->getPropertyCollection());
+                    $this->user->save();
 
-                    if(
-                        ( ! $userID && 'Y' === $this->arParams['REGISTER_NEW_USER']) ||
-                        ($userID && 'Y' === $this->arParams['UPDATE_USER_PROPERTIES'])
-                    ) {
-                        $userProperties = array_merge(UserHelper::getUserProperties($this->order->getPropertyCollection()), [
-                            "ACTIVE" => 'Y' === $this->arParams['NEW_USER_ACTIVATE'] ? 'Y' : 'N',
-                            "GROUP_ID" => array_map('intval', $this->arParams['GROUP_ID']) ?? [5],
-                            "ADMIN_NOTES" => "User created by opensource.order component.",
-                        ]);
-
-                        UserHelper::updateUserAccount($userID, $userProperties);
-                        $this->order->setFieldNoDemand('USER_ID', $userID);
-                    }
-                    elseif( ! $userID) {
-                        $this->order->setFieldNoDemand('USER_ID', CSaleUser::GetAnonymousUserID());
-                    }
-
+                    $this->order->setFieldNoDemand('USER_ID', $this->user->getId());
                     $saveResult = $this->order->save();
                     if (!$saveResult->isSuccess()) {
                         $this->errorCollection->add($saveResult->getErrors());

@@ -81,19 +81,19 @@ $arComponentParameters = [
             'PARENT' => 'ADDITIONAL_SETTINGS',
         ],
         'REGISTER_NEW_USER' => [
-            'NAME' => 'Регистрировать нового пользователя',
+            'NAME' => Loc::getMessage('OPEN_SOURCE_ORDER_REGISTER_NEW_USER'),
             'TYPE' => 'CHECKBOX',
             'DEFAULT' => 'N',
             'PARENT' => 'ADDITIONAL_SETTINGS',
         ],
         'NEW_USER_ACTIVATE' => [
-            'NAME' => 'Активировать нового пользователя',
+            'NAME' => Loc::getMessage('OPEN_SOURCE_ORDER_NEW_USER_ACTIVATE'),
             'TYPE' => 'CHECKBOX',
             'DEFAULT' => 'N',
             'PARENT' => 'ADDITIONAL_SETTINGS',
         ],
-        'GROUP_ID' => [
-            'NAME' => 'Группа пользователя',
+        'REGISTER_GROUP_ID' => [
+            'NAME' => Loc::getMessage('OPEN_SOURCE_ORDER_REGISTER_GROUP_ID'),
             'TYPE' => 'LIST',
             'MULTIPLE' => 'Y',
             'DEFAULT' => '5',
@@ -101,7 +101,7 @@ $arComponentParameters = [
             'VALUES' => $arGroups
         ],
         'UPDATE_USER_PROPERTIES' => [
-            'NAME' => 'Обновлять профиль пользователя',
+            'NAME' => Loc::getMessage('OPEN_SOURCE_ORDER_UPDATE_USER_PROPERTIES'),
             'TYPE' => 'CHECKBOX',
             'DEFAULT' => 'N',
             'PARENT' => 'ADDITIONAL_SETTINGS',
