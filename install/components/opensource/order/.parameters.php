@@ -76,13 +76,6 @@ $arComponentParameters = [
             'PARENT' => 'BASE',
             'VALUES' => $arPaySystemsList
         ],
-        'PATH_TO_BASKET' => [
-            'NAME' => Loc::getMessage('OPEN_SOURCE_ORDER_PATH_TO_BASKET'),
-            'TYPE' => 'STRING',
-            'MULTIPLE' => 'N',
-            'DEFAULT' => '/personal/cart/',
-            'PARENT' => 'ADDITIONAL_SETTINGS',
-        ],
         'ALLOW_UNAUTH_ORDER' => [
             'NAME' => Loc::getMessage('OPEN_SOURCE_ORDER_ALLOW_UNAUTH_ORDER'),
             'TYPE' => 'CHECKBOX',
