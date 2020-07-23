@@ -8,7 +8,7 @@ if (class_exists('opensource_order')) {
     return;
 }
 
-Class opensource_order extends CModule
+class opensource_order extends CModule
 {
     const MODULE_ID = 'opensource.order';
     public $MODULE_ID = 'opensource.order';
@@ -33,13 +33,13 @@ Class opensource_order extends CModule
     }
 
     /**
-     * Get /document/local (when exists) or /document/bitrix.
-     * @return string
+     * Get application folder.
+     * @return string /document/local (when exists) or /document/bitrix
      */
-    function getRoot()
+    private function getRoot()
     {
         $local = $_SERVER['DOCUMENT_ROOT'] . '/local';
-        if(1 === preg_match('#local[\\\/]modules#', __DIR__) && is_dir($local)) {
+        if (1 === preg_match('#local[\\\/]modules#', __DIR__) && is_dir($local)) {
             return $local;
         }
 
