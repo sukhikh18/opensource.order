@@ -26,9 +26,10 @@ Class opensource_order extends CModule
         $this->MODULE_VERSION_DATE = $arModuleVersion['VERSION_DATE'];
         $this->MODULE_NAME = Loc::getMessage('opensource_order_MODULE_NAME');
         $this->MODULE_DESCRIPTION = Loc::getMessage('opensource_order_MODULE_DESC');
-
-        $this->PARTNER_NAME = Loc::getMessage('opensource_order_PARTNER_NAME');
-        $this->PARTNER_URI = Loc::getMessage('opensource_order_PARTNER_URI');
+        $this->PARTNER_NAME = implode(', ', [
+            '<object><a href="//vk.com/nikolays_93">Николай Сухих</a> (<a href="//seo18.ru">SEO18</a>)</object>',
+            '<object><a href="//verstaem.com">Шубин Александр (verstaem.com)</a></object>'
+        ]);
     }
 
     /**
