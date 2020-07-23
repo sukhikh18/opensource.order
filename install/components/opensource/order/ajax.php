@@ -33,9 +33,6 @@ class OpenSourceOrderAjaxController extends Controller
     public function configureActions(): array
     {
         return [
-            'searchLocation' => [
-                'prefilters' => []
-            ],
             'calculateDeliveries' => [
                 'prefilters' => []
             ],
@@ -43,68 +40,6 @@ class OpenSourceOrderAjaxController extends Controller
                 'prefilters' => []
             ]
         ];
-    }
-
-    /**
-     * @param string $q
-     * @param int $limit
-     * @param string $typeCode
-     * @param array $excludeParts
-     * @param string $sortOrder
-     * @return array
-     * @throws Exception
-     */
-    public function searchLocationAction(
-        string $q,
-        int $limit = 5,
-        string $typeCode = '',
-        array $excludeParts = [],
-        string $sortOrder = 'desc'
-    ): array {
-        $foundLocations = [];
-
-        if ($q !== '') {
-            if ($limit > 50 || $limit < 1) {
-                $limit = 50;
-            }
-
-            //getting location type
-            $typeId = null;
-            if(!empty($typeCode)) {
-                $arType = TypeTable::getList([
-                    'select' => [
-                        'ID',
-                        'CODE'
-                    ],
-                    'filter' => [
-                        '=CODE' => $typeCode
-                    ]
-                ])
-                    ->fetch();
-
-                if (!empty($arType)) {
-                    $typeId = $arType['ID'];
-                }
-            }
-
-            $result = Finder::find([
-                'select' => [
-                    'ID',
-                    'CODE',
-                ],
-                'filter' => [
-                    'PHRASE' => $q,
-                    'TYPE_ID' => $typeId
-                ],
-                'limit' => $limit
-            ]);
-
-            while ($arLocation = $result->fetch()) {
-                $foundLocations[] = LocationHelper::getDisplayByCode($arLocation['CODE'], $excludeParts, $sortOrder);
-            }
-        }
-
-        return $foundLocations;
     }
 
     /**
