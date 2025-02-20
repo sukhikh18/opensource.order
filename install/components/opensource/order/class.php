@@ -379,17 +379,17 @@ class OpenSourceOrderComponent extends CBitrixComponent
         try {
             $this->createVirtualOrder($this->arParams['PERSON_TYPE_ID']);
 
-            $propertiesList = $this->request['properties'] ?? $this->arParams['DEFAULT_PROPERTIES'] ?? [];
-            if (!empty($propertiesList)) {
-                $this->setOrderProperties($propertiesList);
-            }
-
             $deliveryId = $this->request['delivery_id'] ?? $this->arParams['DEFAULT_DELIVERY_ID'] ?? 0;
             $this->createOrderShipment($deliveryId);
 
             $paySystemId = $this->request['pay_system_id'] ?? $this->arParams['DEFAULT_PAY_SYSTEM_ID'] ?? 0;
             if ($paySystemId > 0) {
                 $this->createOrderPayment($paySystemId);
+            }
+
+            $propertiesList = $this->request['properties'] ?? $this->arParams['DEFAULT_PROPERTIES'] ?? [];
+            if (!empty($propertiesList)) {
+                $this->setOrderProperties($propertiesList);
             }
 
             if ($this->arParams['SAVE']) {
